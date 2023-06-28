@@ -13,6 +13,8 @@ from lightly.transforms.dino_transform import DINOTransform
 from lightly.utils.scheduler import cosine_schedule
 import wandb
 
+#IMPORTANT:
+# make sure to add this "T.Resize((224,224))," to dino transform file
 
 class DINO(pl.LightningModule):
     def __init__(self):
