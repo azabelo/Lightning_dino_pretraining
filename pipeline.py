@@ -12,6 +12,7 @@ from lightly.models.utils import deactivate_requires_grad, update_momentum, acti
 from lightly.transforms.dino_transform import DINOTransform
 from lightly.utils.scheduler import cosine_schedule
 import wandb
+import torchmetrics
 
 #IMPORTANT:
 # make sure to add this "T.Resize((224,224))," to dino transform file
@@ -69,6 +70,7 @@ class Supervised_trainer(pl.LightningModule):
         super().__init__()
         self.model = model
         self.loss_fn = nn.CrossEntropyLoss()
+        self.accuracy = torchmetrics.Accuracy(task='multiclass', num_classes=10)
 
     def forward(self, x):
         return self.model(x)
@@ -114,7 +116,7 @@ def pretrain():
         batch_size=64,
         shuffle=True,
         drop_last=True,
-        num_workers=8,
+        num_workers=12,
     )
 
     accelerator = "gpu" if torch.cuda.is_available() else "cpu"
@@ -139,8 +141,8 @@ def create_datasets():
     val_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     print("train size: ", len(train_dataset), "validation size: ", len(val_dataset))
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=False)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=12)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=False,  num_workers=12)
 
     return train_loader, val_loader
 
@@ -153,10 +155,10 @@ def supervised_train(model):
 
     accelerator = "gpu" if torch.cuda.is_available() else "cpu"
     # Create a PyTorch Lightning trainer
-    trainer = pl.Trainer(max_epochs=10, devices=1, accelerator=accelerator, val_dataloaders=val_loader)
+    trainer = pl.Trainer(max_epochs=10, devices=1, accelerator=accelerator)
 
     # Train the model
-    trainer.fit(sup_trainer, train_loader)
+    trainer.fit(sup_trainer, train_loader, val_dataloaders=val_loader)
 
     wandb.finish()
 
