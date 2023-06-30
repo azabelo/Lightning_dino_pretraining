@@ -13,6 +13,8 @@ from lightly.transforms.dino_transform import DINOTransform
 from lightly.utils.scheduler import cosine_schedule
 import wandb
 import torchmetrics
+import matplotlib.pyplot as plt
+import numpy as np
 
 #IMPORTANT:
 # make sure to add this "T.Resize((224,224))," to dino transform file
@@ -51,6 +53,15 @@ class DINO(pl.LightningModule):
         views = batch[0]
         views = [view.to(self.device) for view in views]
         global_views = views[:2]
+
+        # print("global: ", views[0][0].shape, " local: ", views[2][0].shape)
+        # image = views[2][0].cpu()
+        # image_np = image.numpy()
+        # image_np = np.transpose(image_np, (1, 2, 0))
+        # plt.imshow(image_np)
+        # plt.axis('off')
+        # plt.show()
+
         teacher_out = [self.forward_teacher(view) for view in global_views]
         student_out = [self.forward(view) for view in views]
         loss = self.criterion(teacher_out, student_out, epoch=self.current_epoch)
@@ -79,7 +90,7 @@ class Supervised_trainer(pl.LightningModule):
         x, y = batch
         logits = self.model(x)
         loss = self.loss_fn(logits, y)
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True)
         wandb.log({"train_loss": loss})
         return loss
 
@@ -89,8 +100,8 @@ class Supervised_trainer(pl.LightningModule):
         loss = self.loss_fn(logits, y)
         preds = torch.argmax(logits, dim=1)
         acc = self.accuracy(preds, y)
-        self.log('val_loss', loss, prog_bar=True)
-        self.log('val_acc', acc, prog_bar=True)
+        self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log('val_acc', acc, on_step=False, on_epoch=True, prog_bar=True)
         wandb.log({"val_loss": loss, "val_acc": acc})
         return loss
 
@@ -103,17 +114,29 @@ def pretrain():
     print("starting pretraining")
     wandb.init(project='unsup pretraining')
 
-    model = DINO()
-    transform = DINOTransform()
-
+    cifar_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Resize((224, 224))
+    ])
     #is this important to have?: target_transform=lambda t: 0 (to ignore object detection)
-    cifar10 = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-    crop_transform = DINOTransform(global_crop_size=196, local_crop_size=64)
-    dataset = LightlyDataset.from_torch_dataset(cifar10, transform=crop_transform)
+    dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=cifar_transform)
+
+    # image, _ = dataset[0]
+    # print(image.shape)
+    # image_np = image.numpy()
+    # image_np = np.transpose(image_np, (1, 2, 0))
+    # plt.imshow(image_np)
+    # plt.axis('off')
+    # plt.show()
+
+    dino_transform = DINOTransform(global_crop_size=224, local_crop_size=224)
+    dataset = LightlyDataset.from_torch_dataset(dataset, transform=dino_transform)
+
+    model = DINO()
 
     dataloader = torch.utils.data.DataLoader(
         dataset,
-        batch_size=64,
+        batch_size=16,
         shuffle=True,
         drop_last=True,
         num_workers=12,
@@ -141,8 +164,8 @@ def create_datasets():
     val_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     print("train size: ", len(train_dataset), "validation size: ", len(val_dataset))
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=12)
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=False,  num_workers=12)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=12)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=16, shuffle=False,  num_workers=12)
 
     return train_loader, val_loader
 
