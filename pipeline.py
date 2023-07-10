@@ -135,7 +135,6 @@ class Supervised_trainer(pl.LightningModule):
         logits = self.model(x)
         loss = self.loss_fn(logits, y)
         self.log('train_loss', loss, prog_bar=True)
-        wandb.log({"train_loss": loss})
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -146,7 +145,6 @@ class Supervised_trainer(pl.LightningModule):
         acc = self.accuracy(preds, y)
         self.log('val_loss', loss, prog_bar=False)
         self.log('val_acc', acc, prog_bar=False)
-        wandb.log({"val_loss": loss, "val_acc": acc})
         return loss
 
     def configure_optimizers(self):
