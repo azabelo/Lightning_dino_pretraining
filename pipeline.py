@@ -145,7 +145,6 @@ class Supervised_trainer(pl.LightningModule):
         acc = self.accuracy(preds, y)
         self.log('val_loss', loss, prog_bar=False)
         self.log('val_acc', acc, prog_bar=False)
-        return loss
 
     def configure_optimizers(self):
         optimizer = Adam(self.parameters(), lr=1e-5)
