@@ -165,7 +165,7 @@ def pretrain():
     resize_size = int(input_size * ratio2)
 
     lr_factor = bs / 256
-    max_epochs = 100
+    max_epochs = 0
 
     cifar_transform = transforms.Compose([
         transforms.ToTensor(),
