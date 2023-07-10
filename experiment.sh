@@ -20,3 +20,14 @@ done < "$requirements_file"
 
 # Run the experiment
 python3 pipeline.py
+
+"""ablations:
+
+no pretraining
+short pretraining
+smaller output dim
+no batch norm
+larger pretraining lr
+adam instead of sgd
+batch size
+"""
