@@ -284,4 +284,4 @@ if __name__ == '__main__':
 
     pretrained_feature_extractor = pretrain(args)
     pretrained_model = Classifier(pretrained_feature_extractor, 10, args)
-    supervised_train(pretrained_model)
+    supervised_train(pretrained_model, args)
