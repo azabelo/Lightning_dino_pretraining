@@ -204,6 +204,9 @@ def pretrain(args):
     )
 
     accelerator = "gpu" if torch.cuda.is_available() else "cpu"
+    if args.lower_precision:
+        torch.set_default_tensor_type(torch.cuda.FloatTensor)  # Ensure you are using CUDA tensors
+        torch.set_float32_matmul_precision('medium')
 
     trainer = pl.Trainer(max_epochs=max_epochs, devices=1, accelerator=accelerator)
     trainer.fit(model=model, train_dataloaders=dataloader)
@@ -242,6 +245,9 @@ def supervised_train(model, args):
     sup_trainer = Supervised_trainer(model)
 
     accelerator = "gpu" if torch.cuda.is_available() else "cpu"
+    if args.lower_precision:
+        torch.set_default_tensor_type(torch.cuda.FloatTensor)  # Ensure you are using CUDA tensors
+        torch.set_float32_matmul_precision('medium')
 
     wandb_logger = WandbLogger(project='sup training', log_model=True)
     # Create a PyTorch Lightning trainer
@@ -273,9 +279,6 @@ def getArgs():
 
 if __name__ == '__main__':
     args = getArgs()
-    if args.lower_precision:
-        torch.set_default_tensor_type(torch.cuda.FloatTensor)  # Ensure you are using CUDA tensors
-        torch.set_float32_matmul_precision('medium')
 
     pretrained_feature_extractor = pretrain(args)
     pretrained_model = Classifier(pretrained_feature_extractor, 10, args)
