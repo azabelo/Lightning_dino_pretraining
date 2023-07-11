@@ -248,8 +248,8 @@ def supervised_train(model, args):
 def getArgs():
     #ablations
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pretrain_epochs', type=int, default=100)
-    parser.add_argument('--supervised_epochs', type=int, default=100)
+    parser.add_argument('--pretrain_epochs', type=int, default=20)
+    parser.add_argument('--supervised_epochs', type=int, default=20)
     parser.add_argument('--no_batchnorm', action='store_true')
     parser.add_argument('--Adam', action='store_true')
     parser.add_argument('--no_scheduler', action='store_true')
