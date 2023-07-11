@@ -255,7 +255,7 @@ def getArgs():
     parser.add_argument('--no_scheduler', action='store_true')
     parser.add_argument('--output_dim', type=int, default=2048)
     parser.add_argument('--learning_rate', type=float, default=6e-2)
-    parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--supervised_batch_size', type=int, default=128)
     args = parser.parse_args()
     return args
