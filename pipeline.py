@@ -204,9 +204,6 @@ def pretrain(args):
     )
 
     accelerator = "gpu" if torch.cuda.is_available() else "cpu"
-    if args.lower_precision:
-        torch.set_default_tensor_type(torch.cuda.FloatTensor)  # Ensure you are using CUDA tensors
-        torch.set_float32_matmul_precision('medium')
 
     trainer = pl.Trainer(max_epochs=max_epochs, devices=1, accelerator=accelerator)
     trainer.fit(model=model, train_dataloaders=dataloader)
@@ -245,9 +242,6 @@ def supervised_train(model, args):
     sup_trainer = Supervised_trainer(model)
 
     accelerator = "gpu" if torch.cuda.is_available() else "cpu"
-    if args.lower_precision:
-        torch.set_default_tensor_type(torch.cuda.FloatTensor)  # Ensure you are using CUDA tensors
-        torch.set_float32_matmul_precision('medium')
 
     wandb_logger = WandbLogger(project='sup training', log_model=True)
     # Create a PyTorch Lightning trainer
@@ -269,7 +263,6 @@ def getArgs():
     parser.add_argument('--Adam', action='store_true')
     parser.add_argument('--no_scheduler', action='store_true')
     parser.add_argument('--output_dim', type=int, default=2048)
-    parser.add_argument('--lower_precision', action='store_true')
     parser.add_argument('--learning_rate', type=float, default=6e-2)
     parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--supervised_batch_size', type=int, default=128)
