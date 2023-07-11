@@ -112,7 +112,7 @@ class Classifier(nn.Module):
         super().__init__()
         self.feature_extractor = model
         self.classifier = nn.Sequential(
-            nn.Linear(2048, num_classes),
+            nn.Linear(384, num_classes),
             nn.Softmax(dim=1)
         )
 
