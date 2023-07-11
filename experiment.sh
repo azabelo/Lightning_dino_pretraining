@@ -20,7 +20,7 @@ while read -r package; do
     fi
 done < "$requirements_file"
 
-# Run the experiment
+# Run the ablation experiment
 python3 pipeline.py --pretrain_epochs 0
 python3 pipeline.py --pretrain_epochs 10
 python3 pipeline.py --no_batchnorm
