@@ -112,11 +112,11 @@ class DINO(pl.LightningModule):
 
 
 class Classifier(nn.Module):
-    def __init__(self, model, num_classes, args):
+    def __init__(self, model, num_classes):
         super().__init__()
         self.feature_extractor = model
         self.classifier = nn.Sequential(
-            nn.Linear(args.output_dim, num_classes),
+            nn.Linear(2048, num_classes),
             nn.Softmax(dim=1)
         )
 
@@ -274,5 +274,5 @@ if __name__ == '__main__':
     args = getArgs()
 
     pretrained_feature_extractor = pretrain(args)
-    pretrained_model = Classifier(pretrained_feature_extractor, 10, args)
+    pretrained_model = Classifier(pretrained_feature_extractor, 10)
     supervised_train(pretrained_model, args)
