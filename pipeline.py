@@ -166,6 +166,8 @@ class Supervised_trainer(pl.LightningModule):
 def pretrain(args):
     print("starting pretraining")
     wandb.init(project='unsup pretraining')
+    # Log the arguments to wandb
+    wandb.config.update(args)
 
     bs = args.batch_size
     num_workers = 16
@@ -218,7 +220,7 @@ def pretrain(args):
     return model.student_backbone
 
 
-def create_datasets():
+def create_datasets(args):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Resize((224, 224)),
@@ -229,24 +231,26 @@ def create_datasets():
     val_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     print("train size: ", len(train_dataset), "validation size: ", len(val_dataset))
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=12)
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=16, shuffle=False, num_workers=12)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.supervised_batch_size, shuffle=True, num_workers=12)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.supervised_batch_size, shuffle=False, num_workers=12)
 
     return train_loader, val_loader
 
 
-def supervised_train(model):
+def supervised_train(model, args):
     print("starting sup training")
     wandb.init(project='sup training')
+    # Log the arguments to wandb
+    wandb.config.update(args)
 
-    train_loader, val_loader = create_datasets()
+    train_loader, val_loader = create_datasets(args)
     sup_trainer = Supervised_trainer(model)
 
     accelerator = "gpu" if torch.cuda.is_available() else "cpu"
 
     wandb_logger = WandbLogger(project='sup training', log_model=True)
     # Create a PyTorch Lightning trainer
-    trainer = pl.Trainer(max_epochs=100, devices=1, accelerator=accelerator, logger=wandb_logger)
+    trainer = pl.Trainer(max_epochs=args.supervised_epochs, devices=1, accelerator=accelerator, logger=wandb_logger)
 
 
 
@@ -259,6 +263,7 @@ def getArgs():
     #ablations
     parser = argparse.ArgumentParser()
     parser.add_argument('--pretrain_epochs', type=int, default=100)
+    parser.add_argument('--supervised_epochs', type=int, default=100)
     parser.add_argument('--no_batchnorm', action='store_false')
     parser.add_argument('--Adam', action='store_true')
     parser.add_argument('--no_scheduler', action='store_false')
@@ -266,6 +271,7 @@ def getArgs():
     parser.add_argument('--lower_precision', action='store_true')
     parser.add_argument('--learning_rate', type=float, default=6e-2)
     parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--supervised_batch_size', type=int, default=128)
     args = parser.parse_args()
     return args
 

@@ -21,4 +21,4 @@ while read -r package; do
 done < "$requirements_file"
 
 # Run the experiment
-python3 pipeline.py --pretrain_epochs 0
+python3 pipeline.py --pretrain_epochs 0 --supervised_epochs 0 --supervised_batch_size 69
