@@ -20,7 +20,7 @@ while read -r package; do
     fi
 done < "$requirements_file"
 
-python3 transformer_pipeline.py
+python3 transformer_pipeline.py --pretrain_epochs 0 --supervised_epochs 1
 
 
 
