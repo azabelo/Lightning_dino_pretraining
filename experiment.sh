@@ -21,8 +21,15 @@ while read -r package; do
 done < "$requirements_file"
 
 # Run the experiment
-python3 pipeline.py --pretrain_epochs 0 --supervised_epochs 0 --no_batchnorm
-python3 pipeline.py --pretrain_epochs 0 --supervised_epochs 0 --Adam
-python3 pipeline.py --pretrain_epochs 0 --supervised_epochs 0 --no_scheduler
-python3 pipeline.py --pretrain_epochs 0 --supervised_epochs 0 --output_dim 256
+python3 pipeline.py --pretrain_epochs 0
+python3 pipeline.py --pretrain_epochs 10
+python3 pipeline.py --no_batchnorm
+python3 pipeline.py --Adam
+python3 pipeline.py --no_scheduler
+python3 pipeline.py --output_dim 256
+python3 pipeline.py --learning_rate 1e-5
+python3 pipeline.py --batch_size 32
+
+
+
 
