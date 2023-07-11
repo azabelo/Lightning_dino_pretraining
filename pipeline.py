@@ -160,7 +160,7 @@ class Supervised_trainer(pl.LightningModule):
 
 def pretrain(args):
     print("starting pretraining")
-    wandb.init(project='unsup pretraining')
+    wandb.init(project='Ablation unsup pretraining')
     # Log the arguments to wandb
     wandb.config.update(args)
 
@@ -234,7 +234,7 @@ def create_datasets(args):
 
 def supervised_train(model, args):
     print("starting sup training")
-    wandb.init(project='sup training')
+    wandb.init(project='Ablation sup training')
     # Log the arguments to wandb
     wandb.config.update(args)
 
