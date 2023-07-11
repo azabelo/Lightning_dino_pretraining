@@ -9,6 +9,8 @@ if [ ! -f "$requirements_file" ]; then
     exit 1
 fi
 
+pip install lightly
+
 # Read each line in requirements.txt and install the packages
 while read -r package; do
     # Ignore comments and empty lines
@@ -19,15 +21,4 @@ while read -r package; do
 done < "$requirements_file"
 
 # Run the experiment
-python3 pipeline.py
-
-"""ablations:
-
-no pretraining
-short pretraining
-smaller output dim
-no batch norm
-larger pretraining lr
-adam instead of sgd
-batch size
-"""
+python3 pipeline.py --pretrain_epochs 0

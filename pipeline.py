@@ -16,13 +16,14 @@ import torchmetrics
 from pytorch_lightning.loggers import WandbLogger
 import matplotlib.pyplot as plt
 import numpy as np
+import argparse
 
 
 # IMPORTANT:
 # make sure to add this "T.Resize((224,224))," to dino transform file
 
 class DINO(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, args):
         super().__init__()
         # backbone = torch.hub.load('facebookresearch/dino:main', 'dino_vits16', pretrained=False)
         resnet = torchvision.models.resnet50()
@@ -30,7 +31,7 @@ class DINO(pl.LightningModule):
         backbone = nn.Sequential(
             *list(resnet.children())[:-1], nn.AdaptiveAvgPool2d(1)
         )
-
+        self.args = args
         self.student_backbone = backbone
         # self.student_head = DINOProjectionHead(
         #     input_dim, 512, 64, 2048, freeze_last_layer=1
@@ -38,16 +39,16 @@ class DINO(pl.LightningModule):
         # self.teacher_backbone = copy.deepcopy(backbone)
         # self.teacher_head = DINOProjectionHead(input_dim, 512, 64, 2048)
         self.student_head = DINOProjectionHead(
-            input_dim, 2048, 256, 2048, batch_norm=True
+            input_dim, 2048, 256, args.output_dim, batch_norm=(not args.no_batchnorm)
         )
         self.teacher_backbone = copy.deepcopy(backbone)
         self.teacher_head = DINOProjectionHead(
-            input_dim, 2048, 256, 2048, batch_norm=True
+            input_dim, 2048, 256, args.output_dim, batch_norm=(not args.no_batchnorm)
         )
         deactivate_requires_grad(self.teacher_backbone)
         deactivate_requires_grad(self.teacher_head)
 
-        self.criterion = DINOLoss(output_dim=2048, warmup_teacher_temp_epochs=5)
+        self.criterion = DINOLoss(output_dim=args.output_dim, warmup_teacher_temp_epochs=5)
 
     def forward(self, x):
         y = self.student_backbone(x).flatten(start_dim=1)
@@ -94,22 +95,33 @@ class DINO(pl.LightningModule):
 
     def configure_optimizers(self):
         param = list(self.student_backbone.parameters()) + list(self.student_head.parameters())
-        optim = torch.optim.SGD(
-            param,
-            lr=6e-2 * self.lr_factor,
-            momentum=0.9,
-            weight_decay=5e-4,
-        )
-        cosine_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, self.max_epochs)
-        return [optim], [cosine_scheduler]
+        if not self.args.Adam:
+            optim = torch.optim.SGD(
+                param,
+                lr=self.args.learning_rate * self.lr_factor,
+                momentum=0.9,
+                weight_decay=5e-4,
+            )
+        else:
+            optim = torch.optim.Adam(
+                param,
+                lr=6e-2 * self.lr_factor,
+                momentum=0.9,
+                weight_decay=5e-4,
+            )
+        if self.args.no_scheduler:
+            return [optim]
+        else:
+            cosine_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, self.max_epochs)
+            return [optim], [cosine_scheduler]
 
 
 class Classifier(nn.Module):
-    def __init__(self, model, num_classes):
+    def __init__(self, model, num_classes, args):
         super().__init__()
         self.feature_extractor = model
         self.classifier = nn.Sequential(
-            nn.Linear(2048, num_classes),
+            nn.Linear(args.output_dim, num_classes),
             nn.Softmax(dim=1)
         )
 
@@ -151,11 +163,11 @@ class Supervised_trainer(pl.LightningModule):
         return optimizer
 
 
-def pretrain():
+def pretrain(args):
     print("starting pretraining")
     wandb.init(project='unsup pretraining')
 
-    bs = 256
+    bs = args.batch_size
     num_workers = 16
     input_size = 32
     ratio = input_size / 224
@@ -164,7 +176,7 @@ def pretrain():
     resize_size = int(input_size * ratio2)
 
     lr_factor = bs / 256
-    max_epochs = 100
+    max_epochs = args.pretrain_epochs
 
     cifar_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -183,7 +195,7 @@ def pretrain():
     dino_transform = DINOTransform(global_crop_size=resize_size, local_crop_size=local_patch_size)
     dataset = LightlyDataset.from_torch_dataset(dataset, transform=dino_transform)
 
-    model = DINO()
+    model = DINO(args)
     model.set_params(lr_factor, max_epochs)
 
     dataloader = torch.utils.data.DataLoader(
@@ -243,8 +255,27 @@ def supervised_train(model):
 
     wandb.finish()
 
+def getArgs():
+    #ablations
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pretrain_epochs', type=int, default=100)
+    parser.add_argument('--no_batchnorm', action='store_false')
+    parser.add_argument('--Adam', action='store_true')
+    parser.add_argument('--no_scheduler', action='store_false')
+    parser.add_argument('--output_dim', type=int, default=2048)
+    parser.add_argument('--lower_precision', action='store_true')
+    parser.add_argument('--learning_rate', type=float, default=6e-2)
+    parser.add_argument('--batch_size', type=int, default=256)
+    args = parser.parse_args()
+    return args
+
 
 if __name__ == '__main__':
-    pretrained_feature_extractor = pretrain()
-    pretrained_model = Classifier(pretrained_feature_extractor, 10)
+    args = getArgs()
+    if args.lower_precision:
+        torch.set_default_tensor_type(torch.cuda.FloatTensor)  # Ensure you are using CUDA tensors
+        torch.set_float32_matmul_precision('medium')
+
+    pretrained_feature_extractor = pretrain(args)
+    pretrained_model = Classifier(pretrained_feature_extractor, 10, args)
     supervised_train(pretrained_model)

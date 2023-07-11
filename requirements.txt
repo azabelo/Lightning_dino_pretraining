@@ -6,3 +6,4 @@ matplotlib
 wandb
 numpy
 lightly
+argparse
