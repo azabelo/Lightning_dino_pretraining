@@ -103,12 +103,7 @@ class DINO(pl.LightningModule):
                 weight_decay=5e-4,
             )
         else:
-            optim = torch.optim.Adam(
-                param,
-                lr=self.args.learning_rate * self.lr_factor,
-                momentum=0.9,
-                weight_decay=5e-4,
-            )
+            optim = Adam(self.parameters(), lr=self.args.learning_rate)
         if self.args.no_scheduler:
             return [optim]
         else:
@@ -264,9 +259,9 @@ def getArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('--pretrain_epochs', type=int, default=100)
     parser.add_argument('--supervised_epochs', type=int, default=100)
-    parser.add_argument('--no_batchnorm', action='store_false')
+    parser.add_argument('--no_batchnorm', action='store_true')
     parser.add_argument('--Adam', action='store_true')
-    parser.add_argument('--no_scheduler', action='store_false')
+    parser.add_argument('--no_scheduler', action='store_true')
     parser.add_argument('--output_dim', type=int, default=2048)
     parser.add_argument('--lower_precision', action='store_true')
     parser.add_argument('--learning_rate', type=float, default=6e-2)
