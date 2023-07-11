@@ -105,7 +105,7 @@ class DINO(pl.LightningModule):
         else:
             optim = torch.optim.Adam(
                 param,
-                lr=6e-2 * self.lr_factor,
+                lr=self.args.learning_rate * self.lr_factor,
                 momentum=0.9,
                 weight_decay=5e-4,
             )
