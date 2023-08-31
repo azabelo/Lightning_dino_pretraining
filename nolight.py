@@ -163,7 +163,7 @@ for epoch in range(epochs):
         model.student_head.cancel_last_layer_gradients(current_epoch=epoch)
         optimizer.step()
         optimizer.zero_grad()
-        print("pretrain loss: ", loss.item()
+        print("pretrain loss: ", loss.item())
 
         if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
