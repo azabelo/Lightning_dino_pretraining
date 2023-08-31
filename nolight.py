@@ -10,6 +10,8 @@ from lightly.models.utils import deactivate_requires_grad, update_momentum
 from lightly.transforms.dino_transform import DINOTransform
 from lightly.utils.scheduler import cosine_schedule
 
+from lightly.data import LightlyDataset
+import torchvision.transforms as transforms
 
 class DINO(torch.nn.Module):
     def __init__(self, backbone, input_dim):
@@ -47,16 +49,15 @@ model = DINO(backbone, input_dim)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
-transform = DINOTransform()
-# we ignore object detection annotations by setting target_transform to return 0
-dataset = torchvision.datasets.VOCDetection(
-    "datasets/pascal_voc",
-    download=True,
-    transform=transform,
-    target_transform=lambda t: 0,
-)
-# or create a dataset from a folder containing images or videos:
-# dataset = LightlyDataset("path/to/folder")
+
+cifar_transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+# is this important to have?: target_transform=lambda t: 0 (to ignore object detection)
+dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=cifar_transform)
+
+dino_transform = DINOTransform(global_crop_size=224, local_crop_size=224)
+dataset = LightlyDataset.from_torch_dataset(dataset, transform=dino_transform)
 
 dataloader = torch.utils.data.DataLoader(
     dataset,
