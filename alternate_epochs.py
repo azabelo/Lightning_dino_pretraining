@@ -54,6 +54,27 @@ class DINO(nn.Module):
         student_out = [self.forward(view) for view in views]
         return teacher_out, student_out
 
+    def set_params(self, lr_factor, max_epochs):
+        self.lr_factor = lr_factor
+        self.max_epochs = max_epochs
+
+    def configure_optimizers(self):
+        param = list(self.student_backbone.parameters()) + list(self.student_head.parameters())
+        if not self.args.Adam:
+            optim = torch.optim.SGD(
+                param,
+                lr=self.args.learning_rate * self.lr_factor,
+                momentum=0.9,
+                weight_decay=5e-4,
+            )
+        else:
+            optim = Adam(self.parameters(), lr=self.args.learning_rate)
+        if self.args.no_scheduler:
+            return [optim]
+        else:
+            cosine_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, self.max_epochs)
+            return [optim], [cosine_scheduler]
+
 
 class Classifier(nn.Module):
     def __init__(self, model, num_classes):
