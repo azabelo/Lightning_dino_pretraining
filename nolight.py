@@ -69,12 +69,14 @@ classifier.to(device)
 
 cifar_transform = transforms.Compose([
         transforms.ToTensor(),
+        transforms.Resize((224, 224)),
     ])
 # is this important to have?: target_transform=lambda t: 0 (to ignore object detection)
 dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=cifar_transform)
+sup_dataset = copy.deepcopy(dataset)
 
 sup_loader = torch.utils.data.DataLoader(
-    dataset,
+    sup_dataset,
     batch_size=64,
     shuffle=True,
     drop_last=True,
@@ -120,8 +122,6 @@ for epoch in range(epochs):
 
         sup_inputs = sup_batch[0]
         sup_labels = sup_batch[1]
-        print(sup_inputs)
-        print(sup_labels)
 
         print("pretrain step")
         views = batch[0]
