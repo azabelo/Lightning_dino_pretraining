@@ -103,7 +103,7 @@ sup_loader = torch.utils.data.DataLoader(
     drop_last=True,
     num_workers=8
 )
-sup_loader = [x[1] for x in enumerate(sup_loader)]
+
 
 dino_transform = DINOTransform(global_crop_size=224, local_crop_size=224)
 dataset = LightlyDataset.from_torch_dataset(dataset, transform=dino_transform)
@@ -134,6 +134,8 @@ sup_epochs = 10
 
 total_steps = len(dataloader) * (epochs + sup_epochs)
 sup_counter = cos_finetune(len(dataloader)*epochs, len(sup_loader)*sup_epochs)
+
+sup_loader = [x[1] for x in enumerate(sup_loader)]
 
 sup_steps_done = 0
 print("Starting Training")
