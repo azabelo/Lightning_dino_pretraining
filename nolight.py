@@ -119,7 +119,7 @@ for epoch in range(epochs):
         print(f"batch: {index} / {len(dataloader)}")
 
         batch = next(iter(dataloader))
-        sup_batch = next(iter(sup_loader))
+        sup_batch = next(iter(sup_loader)).stack()
         print(sup_batch)
         print(type(sup_batch))
         sup_inputs = sup_batch[0].to(device)
