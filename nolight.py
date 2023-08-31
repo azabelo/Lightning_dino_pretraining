@@ -120,7 +120,7 @@ for epoch in range(epochs):
 
         print(f"batch: {index} / {len(dataloader)}")
 
-        sup_inputs = sup_batch[0]
+        sup_inputs = sup_batch[0].to(device)
         sup_labels = sup_batch[1]
 
         print("pretrain step")
