@@ -120,11 +120,8 @@ for epoch in range(epochs):
 
         batch = next(iter(dataloader))
         sup_batch = next(iter(sup_loader))
-        sup_batch = torch.stack(sup_batch)
-        print(sup_batch)
-        print(type(sup_batch))
-        sup_inputs = sup_batch[0].to(device)
-        sup_labels = sup_batch[1].to(device)
+        sup_inputs = sup_batch[0]
+        sup_labels = sup_batch[1]
 
         print("pretrain step")
         views = batch[0]
