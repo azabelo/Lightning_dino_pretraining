@@ -64,7 +64,7 @@ model = DINO(backbone, input_dim)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
-classifier = Classifier(model, 10)
+classifier = Classifier(backbone, 10)
 classifier.to(device)
 
 cifar_transform = transforms.Compose([
