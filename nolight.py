@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import Counter
 
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 class DINO(torch.nn.Module):
     def __init__(self, backbone, input_dim):
