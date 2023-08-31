@@ -162,7 +162,7 @@ for epoch in range(epochs):
         optimizer.step()
         optimizer.zero_grad()
 
-        if index in sup_counter:
+        if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
             for sup_step in range(num_sup_steps):
                 sup_inputs = sup_loader[sup_steps_done % len(sup_loader)][0].to(device)
