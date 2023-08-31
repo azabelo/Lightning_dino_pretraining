@@ -13,35 +13,9 @@ from lightly.utils.scheduler import cosine_schedule
 from lightly.data import LightlyDataset
 import torchvision.transforms as transforms
 import numpy as np
-import matplotlib as plt
-from matplotlib.pyplot import hist
-# Number of values to sample
-num_samples = 100
+import matplotlib.pyplot as plt
+from collections import Counter
 
-# Calculate the probabilities using cosine decay
-num_bins = 1000
-prob_decay = np.cos(np.linspace(0, np.pi, num_bins))
-prob_decay = np.abs(prob_decay)
-prob_decay /= prob_decay.sum()  # Normalize probabilities
-
-# Sample values based on the probabilities
-sampled_indices = np.random.choice(num_bins, size=num_samples, p=prob_decay)
-sampled_values = np.linspace(0, np.pi, num_bins)[sampled_indices]
-
-# Sample values based on the probabilities
-sampled_indices = np.random.choice(num_bins, size=num_samples, p=prob_decay)
-sampled_values = np.linspace(0, np.pi, num_bins)[sampled_indices]
-sampled_values= sampled_values * 1000
-print(sampled_values)
-
-# Plot histogram of sampled values
-hist(sampled_values, bins=num_bins, density=True, alpha=0.6, color='blue', edgecolor='black')
-plt.plot(np.linspace(0, np.pi, num_bins), prob_decay, color='red')
-plt.xlabel("Value")
-plt.ylabel("Density")
-plt.title("Sampled Values from Modified Cosine Decay Distribution")
-plt.legend(["Cosine Decay Probability", "Sampled Values"])
-plt.show()
 
 class DINO(torch.nn.Module):
     def __init__(self, backbone, input_dim):
@@ -80,6 +54,23 @@ class Classifier(nn.Module):
         x = x.view(batch_size, -1)
         x = self.classifier(x)
         return x
+
+def cos_finetune(pretrain_samples, fine_tune_samples):
+
+    prob_decay = np.cos(np.linspace(0, np.pi / 2, pretrain_samples))
+    prob_decay /= prob_decay.sum()  # Normalize probabilities
+
+    # Sample values based on the probabilities
+    sampled_indices = np.random.choice(pretrain_samples, size=fine_tune_samples, p=prob_decay)
+    sampled_values = np.linspace(0, np.pi, pretrain_samples)[sampled_indices]
+
+    # Sample values based on the probabilities
+    sampled_indices = np.random.choice(pretrain_samples, size=fine_tune_samples, p=prob_decay)
+    sampled_values = np.linspace(0, np.pi, pretrain_samples)[sampled_indices]
+    sampled_values = (1 - sampled_values / np.pi) * pretrain_samples
+    sampled_values = sampled_values.round()
+    occurrences = Counter(sampled_values)
+    return occurrences
 
 resnet = torchvision.models.resnet18()
 backbone = nn.Sequential(*list(resnet.children())[:-1])
@@ -141,20 +132,20 @@ epochs = 10
 sup_epochs = 10
 
 total_steps = len(dataloader) * (epochs + sup_epochs)
+sup_counter = cos_finetune(len(dataloader)*epochs, len(sup_loader)*sup_epochs)
 
+sup_steps_done = 0
 print("Starting Training")
 for epoch in range(epochs):
     total_loss = 0
     momentum_val = cosine_schedule(epoch, epochs, 0.996, 1)
 
     total_sup_loss = 0
+    _, sup_batches = enumerate(sup_loader)
 
-    for index, (batch, sup_batch) in enumerate(zip(dataloader, sup_loader)):
+    for index, batch in enumerate(dataloader):
 
         print(f"batch: {index} / {len(dataloader)}")
-
-        sup_inputs = sup_batch[0].to(device)
-        sup_labels = sup_batch[1].to(device)
 
         print("pretrain step")
         views = batch[0]
@@ -172,15 +163,20 @@ for epoch in range(epochs):
         optimizer.step()
         optimizer.zero_grad()
 
-        print("supervised step")
-        sup_optimizer.zero_grad()
-        outputs = classifier(sup_inputs)  # Forward pass
-        sup_loss = sup_criterion(outputs, sup_labels)  # Compute the loss
-        sup_loss.backward()  # Backpropagation
-        sup_optimizer.step()  # Update weights
+        if index in sup_counter:
+            num_sup_steps = sup_counter[index]
+            for sup_step in range(num_sup_steps):
+                sup_inputs = sup_batches[sup_steps_done % len(sup_batches)][0].to(device)
+                sup_labels = sup_batches[sup_steps_done % len(sup_batches)][1].to(device)
+                sup_steps_done += 1
+                print("supervised step: ", sup_steps_done)
+                sup_optimizer.zero_grad()
+                outputs = classifier(sup_inputs)  # Forward pass
+                sup_loss = sup_criterion(outputs, sup_labels)  # Compute the loss
+                sup_loss.backward()  # Backpropagation
+                sup_optimizer.step()  # Update weights
 
         total_loss += loss.item()
-        total_sup_loss += sup_loss.item()
 
 
 
