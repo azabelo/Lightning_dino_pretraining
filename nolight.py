@@ -131,7 +131,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 sup_optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
 
 epochs = 2
-sup_epochs = 2
+sup_epochs = 0
 
 wandb.init(project='alternate epochs')
 
