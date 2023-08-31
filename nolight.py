@@ -12,35 +12,35 @@ from lightly.utils.scheduler import cosine_schedule
 
 from lightly.data import LightlyDataset
 import torchvision.transforms as transforms
-
 import numpy as np
-import matplotlib.pyplot as plt
-
-# Number of balls
-num_red_balls = 1000
-num_blue_balls = 1000
+import matplotlib as plt
+from matplotlib.pyplot import hist
+# Number of values to sample
+num_samples = 100
 
 # Calculate the probabilities using cosine decay
-prob_decay = np.cos(np.linspace(0, np.pi, num_red_balls))
+num_bins = 1000
+prob_decay = np.cos(np.linspace(0, np.pi, num_bins))
+prob_decay = np.abs(prob_decay)
 prob_decay /= prob_decay.sum()  # Normalize probabilities
 
-# Generate a random sequence of balls
-random_indices = np.random.choice(num_red_balls, size=num_red_balls, p=prob_decay)
-random_sequence = ['red'] * num_red_balls + ['blue'] * num_blue_balls
-random_sequence = [random_sequence[i] for i in random_indices]
+# Sample values based on the probabilities
+sampled_indices = np.random.choice(num_bins, size=num_samples, p=prob_decay)
+sampled_values = np.linspace(0, np.pi, num_bins)[sampled_indices]
 
-# Count the occurrences of red and blue balls
-red_count = sum(1 for ball in random_sequence if ball == 'red')
-blue_count = num_blue_balls - red_count
+# Sample values based on the probabilities
+sampled_indices = np.random.choice(num_bins, size=num_samples, p=prob_decay)
+sampled_values = np.linspace(0, np.pi, num_bins)[sampled_indices]
+sampled_values= sampled_values * 1000
+print(sampled_values)
 
-print("Red balls:", red_count)
-print("Blue balls:", blue_count)
-
-# Plot the cosine decay probabilities for visualization
-plt.plot(prob_decay)
-plt.xlabel("Index")
-plt.ylabel("Probability")
-plt.title("Cosine Decay Probability")
+# Plot histogram of sampled values
+hist(sampled_values, bins=num_bins, density=True, alpha=0.6, color='blue', edgecolor='black')
+plt.plot(np.linspace(0, np.pi, num_bins), prob_decay, color='red')
+plt.xlabel("Value")
+plt.ylabel("Density")
+plt.title("Sampled Values from Modified Cosine Decay Distribution")
+plt.legend(["Cosine Decay Probability", "Sampled Values"])
 plt.show()
 
 class DINO(torch.nn.Module):
