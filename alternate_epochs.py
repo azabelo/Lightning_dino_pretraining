@@ -39,7 +39,7 @@ class DINO(nn.Module):
 
         self.criterion = DINOLoss(output_dim=args.output_dim, warmup_teacher_temp_epochs=5)
 
-    def forward(self, x):
+    def forward_student(self, x):
         y = self.student_backbone(x).flatten(start_dim=1)
         z = self.student_head(y)
         return z
@@ -51,7 +51,7 @@ class DINO(nn.Module):
 
     def forward(self, views):
         teacher_out = [self.forward_teacher(view) for view in views[:2]]
-        student_out = [self.forward(view) for view in views]
+        student_out = [self.forward_student(view) for view in views]
         return teacher_out, student_out
 
     def set_params(self, lr_factor, max_epochs):
