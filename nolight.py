@@ -163,6 +163,7 @@ for epoch in range(epochs):
         model.student_head.cancel_last_layer_gradients(current_epoch=epoch)
         optimizer.step()
         optimizer.zero_grad()
+        print("pretrain loss: ", loss.item()
 
         if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
@@ -177,6 +178,7 @@ for epoch in range(epochs):
                 sup_loss = sup_criterion(outputs, sup_labels)  # Compute the loss
                 sup_loss.backward()  # Backpropagation
                 sup_optimizer.step()  # Update weights
+                print("supervised loss: ", sup_loss.item())
 
         total_loss += loss.item()
 
