@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import Counter
 from itertools import cycle
+import wandb
 
 class DINO(torch.nn.Module):
     def __init__(self, backbone, input_dim):
@@ -132,6 +133,8 @@ sup_optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
 epochs = 1
 sup_epochs = 1
 
+wandb.init(project='alternate epochs')
+
 total_steps = len(dataloader) * (epochs + sup_epochs)
 sup_counter = cos_finetune(len(dataloader) * epochs, len(sup_loader)*sup_epochs)
 sup_len = len(sup_loader)
@@ -164,6 +167,7 @@ for epoch in range(epochs):
         optimizer.step()
         optimizer.zero_grad()
         print("pretrain loss: ", loss.item())
+        wandb.log({"pretrain loss": loss.item()})
 
         if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
@@ -179,7 +183,7 @@ for epoch in range(epochs):
                 sup_loss.backward()  # Backpropagation
                 sup_optimizer.step()  # Update weights
                 print("supervised loss: ", sup_loss.item())
-
+                wandb.log({"supervised loss": sup_loss.item()})
 
 
     avg_loss = total_loss / len(dataloader)
