@@ -135,8 +135,7 @@ sup_epochs = 10
 total_steps = len(dataloader) * (epochs + sup_epochs)
 sup_counter = cos_finetune(len(dataloader)*epochs, len(sup_loader)*sup_epochs)
 
-sup_loader = [x[1] for x in enumerate(sup_loader)]
-
+sup_loader = enumerate(sup_loader)
 sup_steps_done = 0
 print("Starting Training")
 for epoch in range(epochs):
@@ -168,8 +167,8 @@ for epoch in range(epochs):
         if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
             for sup_step in range(num_sup_steps):
-                sup_inputs = sup_loader[sup_steps_done % len(sup_loader)][0].to(device)
-                sup_labels = sup_loader[sup_steps_done % len(sup_loader)][1].to(device)
+                sup_inputs = sup_loader[sup_steps_done % len(sup_loader)][1][0].to(device)
+                sup_labels = sup_loader[sup_steps_done % len(sup_loader)][1][1].to(device)
                 sup_steps_done += 1
                 print("supervised step: ", sup_steps_done)
                 sup_optimizer.zero_grad()
