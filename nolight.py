@@ -120,6 +120,8 @@ for epoch in range(epochs):
 
         batch = next(iter(dataloader))
         sup_batch = next(iter(sup_loader))
+        print(sup_batch)
+        print(type(sup_batch))
         sup_inputs = sup_batch[0].to(device)
         sup_labels = sup_batch[1].to(device)
 
