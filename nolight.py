@@ -142,7 +142,7 @@ for epoch in range(epochs):
         print("supervised step")
         sup_optimizer.zero_grad()
         outputs = classifier(sup_inputs)  # Forward pass
-        sup_loss = criterion(outputs, sup_labels)  # Compute the loss
+        sup_loss = sup_criterion(outputs, sup_labels)  # Compute the loss
         sup_loss.backward()  # Backpropagation
         sup_optimizer.step()  # Update weights
 
