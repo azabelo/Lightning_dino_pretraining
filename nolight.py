@@ -114,12 +114,10 @@ for epoch in range(epochs):
 
     total_sup_loss = 0
 
-    for index in range(len(dataloader)):
+    for index, (batch, sup_batch) in enumerate(zip(dataloader, sup_loader)):
 
         print(f"batch: {index} / {len(dataloader)}")
 
-        batch = dataloader[index]
-        sup_batch = sup_loader[index]
         sup_inputs = sup_batch[0]
         sup_labels = sup_batch[1]
         print(sup_inputs)
