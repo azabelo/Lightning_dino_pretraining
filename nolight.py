@@ -180,8 +180,6 @@ for epoch in range(epochs):
                 sup_optimizer.step()  # Update weights
                 print("supervised loss: ", sup_loss.item())
 
-        total_loss += loss.item()
-
 
 
     avg_loss = total_loss / len(dataloader)
