@@ -130,8 +130,8 @@ sup_criterion = sup_criterion.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 sup_optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
 
-epochs = 1
-sup_epochs = 1
+epochs = 2
+sup_epochs = 2
 
 wandb.init(project='alternate epochs')
 
@@ -168,6 +168,8 @@ for epoch in range(epochs):
         optimizer.zero_grad()
         print("pretrain loss: ", loss.item())
         wandb.log({"pretrain loss": loss.item()})
+        wandb.log({"memory": torch.cuda.memory_allocated(device)})
+        wandb.log({"pretrain step": index})
 
         if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
@@ -184,6 +186,7 @@ for epoch in range(epochs):
                 sup_optimizer.step()  # Update weights
                 print("supervised loss: ", sup_loss.item())
                 wandb.log({"supervised loss": sup_loss.item()})
+                wandb.log({"supervised step": sup_steps_done})
 
 
     avg_loss = total_loss / len(dataloader)
