@@ -119,9 +119,9 @@ for epoch in range(epochs):
         print(f"batch: {index} / {len(dataloader)}")
 
         batch = next(iter(dataloader))
-        sup_inputs, sup_labels = next(iter(sup_loader))
-        sup_inputs = sup_inputs.to(device)
-        sup_labels = sup_labels.to(device)
+        sup_batch = next(iter(sup_loader))
+        sup_inputs = sup_batch[0].to(device)
+        sup_labels = sup_batch[1].to(device)
 
         print("pretrain step")
         views = batch[0]
