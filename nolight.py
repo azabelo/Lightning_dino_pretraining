@@ -167,8 +167,9 @@ for epoch in range(epochs):
         if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
             for sup_step in range(num_sup_steps):
-                sup_inputs = next(sup_loader)[1][0].to(device)
-                sup_labels = next(sup_loader)[1][1].to(device)
+                sup_batch = next(sup_loader)[1].to(device)
+                sup_inputs = sup_batch[0]
+                sup_labels = sup_batch[1]
                 sup_steps_done += 1
                 print("supervised step: ", sup_steps_done)
                 sup_optimizer.zero_grad()
