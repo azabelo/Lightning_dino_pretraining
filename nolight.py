@@ -13,6 +13,36 @@ from lightly.utils.scheduler import cosine_schedule
 from lightly.data import LightlyDataset
 import torchvision.transforms as transforms
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Number of balls
+num_red_balls = 1000
+num_blue_balls = 1000
+
+# Calculate the probabilities using cosine decay
+prob_decay = np.cos(np.linspace(0, np.pi, num_red_balls))
+prob_decay /= prob_decay.sum()  # Normalize probabilities
+
+# Generate a random sequence of balls
+random_indices = np.random.choice(num_red_balls, size=num_red_balls, p=prob_decay)
+random_sequence = ['red'] * num_red_balls + ['blue'] * num_blue_balls
+random_sequence = [random_sequence[i] for i in random_indices]
+
+# Count the occurrences of red and blue balls
+red_count = sum(1 for ball in random_sequence if ball == 'red')
+blue_count = num_blue_balls - red_count
+
+print("Red balls:", red_count)
+print("Blue balls:", blue_count)
+
+# Plot the cosine decay probabilities for visualization
+plt.plot(prob_decay)
+plt.xlabel("Index")
+plt.ylabel("Probability")
+plt.title("Cosine Decay Probability")
+plt.show()
+
 class DINO(torch.nn.Module):
     def __init__(self, backbone, input_dim):
         super().__init__()
@@ -108,6 +138,9 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 sup_optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
 
 epochs = 10
+sup_epochs = 10
+
+total_steps = len(dataloader) * (epochs + sup_epochs)
 
 print("Starting Training")
 for epoch in range(epochs):
