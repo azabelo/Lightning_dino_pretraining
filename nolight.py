@@ -141,7 +141,6 @@ for epoch in range(epochs):
     momentum_val = cosine_schedule(epoch, epochs, 0.996, 1)
 
     total_sup_loss = 0
-    _, sup_batches = enumerate(sup_loader)
 
     for index, batch in enumerate(dataloader):
 
@@ -166,8 +165,8 @@ for epoch in range(epochs):
         if index in sup_counter:
             num_sup_steps = sup_counter[index]
             for sup_step in range(num_sup_steps):
-                sup_inputs = sup_batches[sup_steps_done % len(sup_batches)][0].to(device)
-                sup_labels = sup_batches[sup_steps_done % len(sup_batches)][1].to(device)
+                sup_inputs = sup_loader[sup_steps_done % len(sup_loader)][0].to(device)
+                sup_labels = sup_loader[sup_steps_done % len(sup_loader)][1].to(device)
                 sup_steps_done += 1
                 print("supervised step: ", sup_steps_done)
                 sup_optimizer.zero_grad()
