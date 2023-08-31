@@ -129,12 +129,12 @@ sup_criterion = sup_criterion.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 sup_optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
 
-epochs = 10
-sup_epochs = 10
+epochs = 1
+sup_epochs = 1
 
 total_steps = len(dataloader) * (epochs + sup_epochs)
 sup_counter = cos_finetune(len(dataloader)*epochs, len(sup_loader)*sup_epochs)
-
+sup_len = len(sup_loader)
 sup_loader = enumerate(sup_loader)
 sup_steps_done = 0
 print("Starting Training")
@@ -167,8 +167,8 @@ for epoch in range(epochs):
         if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
             for sup_step in range(num_sup_steps):
-                sup_inputs = sup_loader[sup_steps_done % len(sup_loader)][1][0].to(device)
-                sup_labels = sup_loader[sup_steps_done % len(sup_loader)][1][1].to(device)
+                sup_inputs = sup_loader[sup_steps_done % sup_len][1][0].to(device)
+                sup_labels = sup_loader[sup_steps_done % sup_len][1][1].to(device)
                 sup_steps_done += 1
                 print("supervised step: ", sup_steps_done)
                 sup_optimizer.zero_grad()
