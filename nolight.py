@@ -73,6 +73,14 @@ cifar_transform = transforms.Compose([
 # is this important to have?: target_transform=lambda t: 0 (to ignore object detection)
 dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=cifar_transform)
 
+sup_loader = torch.utils.data.DataLoader(
+    dataset,
+    batch_size=64,
+    shuffle=True,
+    drop_last=True,
+    num_workers=8
+)
+
 dino_transform = DINOTransform(global_crop_size=224, local_crop_size=224)
 dataset = LightlyDataset.from_torch_dataset(dataset, transform=dino_transform)
 
@@ -82,14 +90,6 @@ dataloader = torch.utils.data.DataLoader(
     shuffle=True,
     drop_last=True,
     num_workers=8,
-)
-
-sup_loader = torch.utils.data.DataLoader(
-    dataset,
-    batch_size=64,
-    shuffle=True,
-    drop_last=True,
-    num_workers=8
 )
 
 criterion = DINOLoss(
