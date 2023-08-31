@@ -15,8 +15,7 @@ import torchvision.transforms as transforms
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import Counter
-
-torch.multiprocessing.set_sharing_strategy('file_system')
+from itertools import cycle
 
 class DINO(torch.nn.Module):
     def __init__(self, backbone, input_dim):
@@ -136,7 +135,7 @@ sup_epochs = 1
 total_steps = len(dataloader) * (epochs + sup_epochs)
 sup_counter = cos_finetune(len(dataloader)*epochs, len(sup_loader)*sup_epochs)
 sup_len = len(sup_loader)
-sup_loader = list(enumerate(sup_loader))
+sup_loader = cycle(enumerate(sup_loader))
 sup_steps_done = 0
 print("Starting Training")
 for epoch in range(epochs):
@@ -168,8 +167,8 @@ for epoch in range(epochs):
         if float(index) in sup_counter:
             num_sup_steps = sup_counter[index]
             for sup_step in range(num_sup_steps):
-                sup_inputs = sup_loader[sup_steps_done % sup_len][1][0].to(device)
-                sup_labels = sup_loader[sup_steps_done % sup_len][1][1].to(device)
+                sup_inputs = next(sup_loader)[1][0].to(device)
+                sup_labels = next(sup_loader)[1][1].to(device)
                 sup_steps_done += 1
                 print("supervised step: ", sup_steps_done)
                 sup_optimizer.zero_grad()
