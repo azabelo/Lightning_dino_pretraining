@@ -114,7 +114,7 @@ for epoch in range(epochs):
 
     total_sup_loss = 0
 
-    for index in len(dataloader):
+    for index in range(len(dataloader)):
 
         print(f"batch: {index} / {len(dataloader)}")
 
