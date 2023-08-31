@@ -50,6 +50,7 @@ class DINO(nn.Module):
         return z
 
     def forward(self, views):
+        print(views.shape)
         teacher_out = [self.forward_teacher(view) for view in views[:2]]
         student_out = [self.forward_student(view) for view in views]
         return teacher_out, student_out
