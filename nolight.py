@@ -133,7 +133,7 @@ epochs = 1
 sup_epochs = 1
 
 total_steps = len(dataloader) * (epochs + sup_epochs)
-sup_counter = cos_finetune(len(dataloader)*epochs, len(sup_loader)*sup_epochs)
+sup_counter = cos_finetune(2, len(sup_loader)*sup_epochs)
 sup_len = len(sup_loader)
 sup_loader = cycle(enumerate(sup_loader))
 sup_steps_done = 0
